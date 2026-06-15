@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌿 花園兒童遊戲</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', 'Comic Sans MS', sans-serif;
+    background: linear-gradient(180deg, #87CEEB 0%, #B2EBF2 30%, #C8E6C9 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .container {
+    background: rgba(255,255,255,0.93);
+    border-radius: 32px;
+    padding: 32px 28px;
+    max-width: 800px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    text-align: center;
+    display: none;
+  }
+  h1 {
+    font-size: 2.4rem;
+    background: linear-gradient(135deg, #2E7D32, #66BB6A);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    color: #666;
+    font-size: 1.05rem;
+    margin-bottom: 28px;
+  }
+  .games {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+  .game-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: #f8f9fa;
+    border-radius: 20px;
+    padding: 18px 22px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.25s;
+    border: 2px solid transparent;
+    text-align: left;
+  }
+  .game-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    border-color: #81C784;
+  }
+  .game-icon {
+    font-size: 3rem;
+    flex-shrink: 0;
+    width: 64px;
+    text-align: center;
+  }
+  .game-info h2 {
+    font-size: 1.3rem;
+    color: #333;
+    margin-bottom: 4px;
+  }
+  .game-info p {
+    color: #777;
+    font-size: 0.92rem;
+    line-height: 1.4;
+  }
+  .game-card:nth-child(1) { border-left: 5px solid #66BB6A; }
+  .game-card:nth-child(2) { border-left: 5px solid #FF8A65; }
+  .game-card:nth-child(3) { border-left: 5px solid #D84315; }
+  .links {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #E8F5E9;
+    color: #2E7D32;
+    padding: 10px 22px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+  }
+  .links a:hover {
+    background: #C8E6C9;
+    transform: translateY(-2px);
+  }
+  .intro-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+  }
+  .intro-box {
+    background: #fff; border-radius: 32px; padding: 36px 32px;
+    max-width: 540px; width: 90%; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: introIn 0.5s ease;
+  }
+  @keyframes introIn {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .intro-box .big-icon { font-size: 4rem; margin-bottom: 8px; }
+  .intro-box h2 { font-size: 1.6rem; color: #2E7D32; margin-bottom: 4px; }
+  .intro-box .tag { color: #888; font-size: 0.9rem; margin-bottom: 16px; }
+  .learning-section {
+    background: #E8F5E9; border-radius: 16px; padding: 16px 18px;
+    margin-bottom: 20px; text-align: left; max-height: 340px; overflow-y: auto;
+  }
+  .learning-section h3 {
+    font-size: 1rem; color: #2E7D32; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .learning-section p, .learning-section blockquote {
+    font-size: 0.88rem; color: #444; line-height: 1.7;
+    margin-bottom: 10px; text-align: justify;
+  }
+  .learning-section p:last-child { margin-bottom: 0; }
+  .learning-section p strong { color: #2E7D32; }
+  .learning-section blockquote {
+    margin: 6px 0 10px 0; padding: 8px 14px;
+    background: rgba(46,125,50,0.08); border-left: 4px solid #66BB6A;
+    border-radius: 0 8px 8px 0; font-style: italic; color: #555;
+  }
+  .intro-box .btn-start {
+    background: linear-gradient(145deg, #66BB6A, #388E3C);
+    color: #fff; border: none; padding: 14px 48px; border-radius: 50px;
+    font-size: 1.2rem; font-weight: bold; cursor: pointer;
+    transition: all 0.3s; box-shadow: 0 4px 15px rgba(56,142,60,0.4);
+    letter-spacing: 2px;
+  }
+  .intro-box .btn-start:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(56,142,60,0.5); }
+  .hidden { display: none !important; }
+  .footer {
+    margin-top: 24px;
+    font-size: 0.85rem;
+    color: #aaa;
+  }
+  @media (max-width: 480px) {
+    .container { padding: 20px 16px; }
+    h1 { font-size: 1.7rem; }
+    .game-card { flex-direction: column; text-align: center; gap: 8px; padding: 14px; }
+    .game-icon { width: auto; font-size: 2.4rem; }
+  }
+</style>
+</head>
+<body>
+<div id="intro" class="intro-overlay">
+  <div class="intro-box">
+    <div class="big-icon">🌿</div>
+    <h2>花園兒童遊戲</h2>
+    <p class="tag">三個可愛又好玩的花園主題遊戲</p>
+    <div class="learning-section">
+      <h3>💡 從零到有的「造物者」成就感</h3>
+      <p><strong>1. 面對空白的茫然與挑戰</strong><br>還記得剛打開編輯器（如 VS Code）時，面對著一片漆黑、只有一個閃爍游標的空白檔案，內心其實充滿了未知與一點點焦慮。那些由英文和符號組成的程式碼，在第一眼看來就像是外星解碼遊戲。一開始，光是為了搞懂標籤要成雙成對、路徑要怎麼連才不會破圖，就花了不少力氣，甚至會因為漏掉一個角括號 <code>&gt;</code> 而卡關許久。</p>
+      <p><strong>2. 驚喜的「指尖魔法」</strong><br>然而，這種挫折感在第一次成功按下「儲存並重新整理」的那一刻，瞬間煙消雲散。當我敲下 <code>&lt;h1&gt;Hello World&lt;/h1&gt;</code>，看到瀏覽器上真的跳出自己親手打出的標題時，那種震撼是難以言喻的。</p>
+      <blockquote>這就像是手裡握著一根魔法棒，只要輸入正確的指令，就能憑空在原本空無一物的數位宇宙裡，蓋出一棟房子、鋪出一條道路。</blockquote>
+      <p>隨著程式碼一行行累積，原本雜亂的文字變成了井然有序的表格、靜態的圖片變成了可以點擊跳轉的超連結、左側的清單變成了頂部的導覽列。看著網頁從一個簡陋的草稿，一步步長成自己心中想像的模樣，那種「這是我從無到有創造出來的東西」的踏實感，帶來了極大的心理滿足。</p>
+      <p><strong>3. 解題後的頂級多巴胺</strong><br>網頁設計的成就感，往往也來自於「解決問題」的瞬間。在過程中，一定會遇到畫面排版跑掉、圖片顯示不出來的挫折。但當我耐著性子，一條條檢查語法，最終找出 Bug、讓畫面回歸完美的那個瞬間，那種成就感會瞬間衝到頂峰。</p>
+      <p>這段從零到有的過程讓我明白：<strong>網頁設計不只是在敲擊鍵盤，而是一場把抽象思考轉化為具體視覺的創作旅程。</strong> 這份成就感，就是支撐我繼續學下去、想把網頁做得更好的最大動力！</p>
+    </div>
+    <button class="btn-start" onclick="startIntro()">🌿 進入遊戲</button>
+  </div>
+</div>
+<div class="container" id="mainContent">
+  <h1>🌿 花園兒童遊戲</h1>
+  <p class="subtitle">三個可愛又好玩的花園主題遊戲，點擊開始！</p>
+
+  <div class="games">
+    <a class="game-card" href="plant.html">
+      <div class="game-icon">🌱</div>
+      <div class="game-info">
+        <h2>花園種花</h2>
+        <p>點擊花盆種下種子、澆水灌溉，看著花朵慢慢盛開！培養耐心與觀察力。</p>
+      </div>
+    </a>
+
+    <a class="game-card" href="bugcatch.html">
+      <div class="game-icon">🐞</div>
+      <div class="game-info">
+        <h2>花園捉蟲</h2>
+        <p>30 秒限時挑戰！在花叢間找出亂跑的蟲蟲，點擊捕捉。訓練反應力與專注力。</p>
+      </div>
+    </a>
+
+    <a class="game-card" href="veggie.html">
+      <div class="game-icon">🥕</div>
+      <div class="game-info">
+        <h2>蔬菜記憶</h2>
+        <p>翻開農夫市集的攤位，找出相同的蔬菜配對！考驗你的記憶力。</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="links">
+    <a href="遊戲說明.md">📖 遊戲說明</a>
+    <a href="學習心得.md">💡 學習心得</a>
+  </div>
+
+  <div class="footer">幼保三丙-81410346 ✦ 直接用瀏覽器開啟即可玩</div>
+</div>
+<script>
+  function startIntro() {
+    document.getElementById('intro').classList.add('hidden');
+    document.getElementById('mainContent').style.display = 'block';
+  }
+</script>
+</body>
+</html>

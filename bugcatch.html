@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐞 花園捉蟲</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', 'Comic Sans MS', sans-serif;
+    background: linear-gradient(180deg, #87CEEB 0%, #B2EBF2 35%, #C8E6C9 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+    overflow: hidden;
+  }
+  .game-container {
+    background: rgba(255,255,255,0.92);
+    border-radius: 32px;
+    padding: 24px;
+    max-width: 640px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    text-align: center;
+    position: relative;
+    z-index: 2;
+  }
+  h1 { font-size: 2rem; color: #E65100; margin-bottom: 4px; }
+  .subtitle { color: #666; margin-bottom: 14px; font-size: 0.95rem; }
+  .stats {
+    background: #FFF3E0; border-radius: 16px; padding: 10px 18px;
+    margin-bottom: 14px; display: flex; justify-content: space-around;
+    font-weight: bold; color: #E65100; font-size: 1.05rem;
+  }
+  .stats span { color: #333; }
+  .garden-field {
+    background: #A5D6A7;
+    border-radius: 20px;
+    height: 380px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.1);
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="rgba(255,255,255,0.3)" stroke="%23E65100" stroke-width="2"/><circle cx="14" cy="14" r="2" fill="%23E65100"/><circle cx="18" cy="14" r="2" fill="%23E65100"/><path d="M12 20 Q16 24 20 20" stroke="%23E65100" fill="none" stroke-width="2"/></svg>') 16 16, auto;
+    margin-bottom: 14px;
+  }
+  .garden-field .deco {
+    position: absolute;
+    font-size: 1.4rem;
+    opacity: 0.25;
+    bottom: 0;
+    pointer-events: none;
+  }
+  .bug {
+    position: absolute;
+    font-size: 2.6rem;
+    cursor: pointer;
+    transition: transform 0.15s;
+    z-index: 5;
+    animation: bugIdle 0.6s ease-in-out infinite alternate;
+    user-select: none;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  }
+  .bug:hover { transform: scale(1.3); }
+  .bug.splat {
+    animation: splat 0.35s ease forwards;
+    pointer-events: none;
+  }
+  @keyframes bugIdle {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-6px); }
+  }
+  @keyframes splat {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.6); opacity: 0.6; }
+    100% { transform: scale(0); opacity: 0; }
+  }
+  .btn {
+    background: linear-gradient(145deg, #FF8A65, #E64A19);
+    color: #fff; border: none; padding: 12px 36px; border-radius: 50px;
+    font-size: 1.1rem; font-weight: bold; cursor: pointer;
+    transition: all 0.3s; box-shadow: 0 4px 15px rgba(230,74,25,0.4);
+    letter-spacing: 1px;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(230,74,25,0.5); }
+  .btn:active { transform: translateY(0); }
+  .message { margin-top: 12px; font-size: 1.15rem; font-weight: bold; color: #E65100; min-height: 2em; }
+  .timer-bar {
+    height: 6px;
+    background: #E0E0E0;
+    border-radius: 4px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .timer-bar-inner {
+    height: 100%;
+    background: linear-gradient(90deg, #66BB6A, #FFA726, #EF5350);
+    border-radius: 4px;
+    transition: width 1s linear;
+    width: 100%;
+  }
+
+  .reflection {
+    background: #FFF3E0; border-radius: 16px; padding: 14px 18px;
+    margin: 14px 0 0 0; text-align: left;
+  }
+  .reflection h3 {
+    font-size: 0.95rem; color: #E65100; margin-bottom: 6px;
+  }
+  .reflection p {
+    font-size: 0.85rem; color: #555; line-height: 1.6; margin: 0;
+  }
+  .game-footer {
+    margin-top: 14px; font-size: 0.9rem; color: #888;
+    border-top: 1px solid #eee; padding-top: 12px;
+  }
+  @media (max-width: 480px) {
+    .game-container { padding: 16px; }
+    h1 { font-size: 1.5rem; }
+    .garden-field { height: 280px; }
+    .bug { font-size: 2rem; }
+    .reflection { padding: 12px 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="game-container" id="gameContainer">
+  <h1>🐞 花園捉蟲</h1>
+  <p class="subtitle">點擊小蟲來捉住牠們！</p>
+  <div class="stats">
+    <div>🐛 捉到 <span id="score">0</span></div>
+    <div>⏱️ 時間 <span id="timeLeft">30</span>s</div>
+  </div>
+  <div class="timer-bar"><div class="timer-bar-inner" id="timerBar"></div></div>
+  <div class="garden-field" id="field">
+    <span class="deco" style="left:5%;">🌿</span>
+    <span class="deco" style="left:25%;">🌻</span>
+    <span class="deco" style="left:45%;">🌷</span>
+    <span class="deco" style="left:65%;">🌿</span>
+    <span class="deco" style="left:85%;">🌼</span>
+  </div>
+  <button class="btn" id="resetBtn">🔄 重新開始</button>
+  <div class="message" id="message">按下「重新開始」來玩！</div>
+  <div class="reflection">
+    <h3>💭 遊戲心得</h3>
+    <p>限時捉蟲的過程讓我學到「專注」的重要性——時間在倒數、蟲蟲在亂跑，必須在短時間內做出判斷與反應。寫程式也是一樣，常常要在有限的时间內解決問題。幫不同的蟲設定不同的分數，也讓我體會到設計遊戲時需要考慮平衡性與趣味性，這是一門學問。</p>
+  </div>
+  <div class="game-footer">幼保三丙 81410346</div>
+</div>
+<script>
+  const bugEmojis = ['🐞','🦋','🐝','🐜','🐛','🐌'];
+  const bugScores = { '🐞':10, '🦋':15, '🐝':12, '🐜':8, '🐛':8, '🐌':5 };
+
+  let score = 0;
+  let timeLeft = 30;
+  let timer = null;
+  let spawnTimer = null;
+  let isRunning = false;
+  let bugsOnField = 0;
+
+  function getRandomPos() {
+    const field = document.getElementById('field');
+    const rect = field.getBoundingClientRect();
+    const w = rect.width - 70;
+    const h = rect.height - 70;
+    return {
+      x: Math.random() * w,
+      y: Math.random() * h
+    };
+  }
+
+  function spawnBug() {
+    if (!isRunning || bugsOnField >= 5) return;
+    const field = document.getElementById('field');
+    const emoji = bugEmojis[Math.floor(Math.random() * bugEmojis.length)];
+    const pos = getRandomPos();
+    const bug = document.createElement('div');
+    bug.className = 'bug';
+    bug.textContent = emoji;
+    bug.style.left = pos.x + 'px';
+    bug.style.top = pos.y + 'px';
+    bug.dataset.emoji = emoji;
+
+    let moveInterval = setInterval(() => {
+      if (!bug.parentElement || bug.classList.contains('splat')) {
+        clearInterval(moveInterval);
+        return;
+      }
+      const fieldRect = field.getBoundingClientRect();
+      const maxW = fieldRect.width - 70;
+      const maxH = fieldRect.height - 70;
+      const nx = Math.max(0, Math.min(maxW, parseFloat(bug.style.left) + (Math.random() - 0.5) * 40));
+      const ny = Math.max(0, Math.min(maxH, parseFloat(bug.style.top) + (Math.random() - 0.5) * 40));
+      bug.style.left = nx + 'px';
+      bug.style.top = ny + 'px';
+    }, 1000 + Math.random() * 1500);
+
+    bug.addEventListener('click', () => {
+      if (!isRunning || bug.classList.contains('splat')) return;
+      bug.classList.add('splat');
+      clearInterval(moveInterval);
+      bugsOnField--;
+      const pts = bugScores[emoji] || 10;
+      score += pts;
+      document.getElementById('score').textContent = score;
+      showFloatingText(bug, '+' + pts);
+      setTimeout(() => bug.remove(), 400);
+    });
+
+    const lifetime = 3000 + Math.random() * 3000;
+    setTimeout(() => {
+      if (bug.parentElement && !bug.classList.contains('splat')) {
+        bug.style.transition = 'opacity 0.4s';
+        bug.style.opacity = '0';
+        setTimeout(() => { bug.remove(); bugsOnField--; }, 450);
+      }
+    }, lifetime);
+
+    field.appendChild(bug);
+    bugsOnField++;
+  }
+
+  function showFloatingText(el, text) {
+    const ft = document.createElement('div');
+    ft.textContent = text;
+    ft.style.cssText = `
+      position: absolute; font-size: 1.3rem; font-weight: bold;
+      color: #E65100; pointer-events: none; z-index: 20;
+      transition: all 0.8s ease-out;
+    `;
+    const rect = el.getBoundingClientRect();
+    const fieldRect = document.getElementById('field').getBoundingClientRect();
+    ft.style.left = (rect.left - fieldRect.left) + 'px';
+    ft.style.top = (rect.top - fieldRect.top) + 'px';
+    document.getElementById('field').appendChild(ft);
+    requestAnimationFrame(() => {
+      ft.style.transform = 'translateY(-40px)';
+      ft.style.opacity = '0';
+    });
+    setTimeout(() => ft.remove(), 900);
+  }
+
+  function startGame() {
+    score = 0;
+    timeLeft = 30;
+    isRunning = true;
+    bugsOnField = 0;
+    document.getElementById('score').textContent = '0';
+    document.getElementById('timeLeft').textContent = '30';
+    document.getElementById('message').textContent = '快捉蟲！';
+    document.getElementById('timerBar').style.width = '100%';
+
+    document.querySelectorAll('.bug, .splat').forEach(el => el.remove());
+
+    if (timer) clearInterval(timer);
+    if (spawnTimer) clearInterval(spawnTimer);
+
+    spawnBug();
+    spawnTimer = setInterval(() => { if (isRunning) spawnBug(); }, 1200);
+
+    timer = setInterval(() => {
+      timeLeft--;
+      document.getElementById('timeLeft').textContent = timeLeft;
+      document.getElementById('timerBar').style.width = (timeLeft / 30 * 100) + '%';
+      if (timeLeft <= 0) {
+        endGame();
+      }
+    }, 1000);
+  }
+
+  function endGame() {
+    isRunning = false;
+    if (timer) { clearInterval(timer); timer = null; }
+    if (spawnTimer) { clearInterval(spawnTimer); spawnTimer = null; }
+    document.querySelectorAll('.bug').forEach(el => {
+      el.style.transition = 'opacity 0.5s';
+      el.style.opacity = '0';
+      setTimeout(() => el.remove(), 550);
+    });
+    let msg = '⏰ 時間到！';
+    if (score >= 80) msg += ' 🏆 超級捉蟲高手！';
+    else if (score >= 50) msg += ' 🌟 好厲害！';
+    else if (score >= 25) msg += ' 👍 不錯喔！';
+    else msg += ' 💪 再試一次！';
+    document.getElementById('message').textContent = msg + ` (${score}分)`;
+  }
+
+  document.getElementById('resetBtn').addEventListener('click', startGame);
+  startGame();
+</script>
+</body>
+</html>
